@@ -1,0 +1,32 @@
+import pyshark
+import pandas as pd
+
+# Charger le fichier pcap (change le nom si besoin)
+pcap_file = 'normal.pcap'  # Assure-toi que ce fichier est dans le même dossier
+cap = pyshark.FileCapture(pcap_file)
+
+# Liste pour stocker les features
+data = []
+
+# Lecture des paquets
+for pkt in cap:
+    try:
+        if 'IP' in pkt:
+            row = {
+                'src_ip': pkt.ip.src,
+                'dst_ip': pkt.ip.dst,
+                'protocol': pkt.transport_layer if hasattr(pkt, 'transport_layer') else 'N/A',
+                'length': int(pkt.length),
+                'time': str(pkt.sniff_time)
+            }
+            data.append(row)
+    except AttributeError:
+        continue
+
+# Convertir en DataFrame
+df = pd.DataFrame(data)
+
+# Sauvegarder les données extraites dans un fichier CSV
+df.to_csv('trafic_normal.csv', index=False)
+
+print("✅ Données extraites et enregistrées dans 'trafic_normal.csv'")
